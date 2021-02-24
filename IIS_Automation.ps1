@@ -24,11 +24,7 @@ Configuration Webserver
         $WebsiteName = 'ArianWeb'
         }
 
-
-  Import-DscResource -ModuleName xwebadministration
-  Import-DscResource -ModuleName PSDesiredStateConfiguration
-  import-dscresource -Name xwebsite
-
+  Import-DscResource -ModuleName xwebadministration , PSDesiredStateConfiguration
 
     node localhost {
         #check if server needs to restart
