@@ -92,7 +92,5 @@ Webserver -OutputPath "C:\DscConfiguration"
 Start-DscConfiguration -wait -verbose -Path "C:\DscConfiguration"
 
 Start-DscConfiguration -Path 'C:\EnvironmentVariable_Path' -Wait -Verbose	Read MOF file and start configuration
-Get-DscConfiguration	Get the current state of the configuration
-Get-DscLocalConfigurationManager	The Get-DscLocalConfigurationManager cmdlet returns the current meta-configuration applied to the machine.
-Remove-DscConfigurationDocument -Stage Current -Verbose	Remove the current configuration from a machine
-Remove-DscConfigurationDocument -Stage Pending	Remove the pending configuration from a machine
+
+
