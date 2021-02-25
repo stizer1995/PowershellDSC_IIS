@@ -70,6 +70,14 @@ Configuration Webserver
             PhysicalPath    = 'C:\inetpub\wwwroot'
             DependsOn       = "[WindowsFeature]$Feature"
         }
+        
+        # Create WebAppPool
+        xWebAppPool WebAppPool
+        {
+            Ensure = "Present"
+            State = "Started"
+            Name = $WebsiteName
+        }
 
         # Create Webiste
         xWebsite Arianweb
@@ -85,7 +93,18 @@ Configuration Webserver
                                  }
                                 )
             DependsOn       = '[File]ArianWeb'
-         }       
+         }  
+         
+        #Create WebApplication
+        xWebApplication demoWebApplication
+         {
+            Name = $WebsiteName
+            Website = $WebsiteName
+            WebAppPool = $WebsiteName
+            PhysicalPath = $arianwebpath
+            Ensure = 'Present'
+            DependsOn = '[xWebSite]Arianweb'
+         }     
     }
 }
 
