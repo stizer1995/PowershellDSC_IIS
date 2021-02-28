@@ -10,7 +10,7 @@ Configuration SQLInstall
     )
 
 
-     Import-DscResource -ModuleName SqlServerDsc,PSDesiredStateConfiguration
+     Import-DscResource -ModuleName SqlServerDsc , PSDesiredStateConfiguration , NetworkingDsc
 
      node localhost
      {
@@ -26,8 +26,48 @@ Configuration SQLInstall
                Features            = 'SQLENGINE'
                SourcePath          = $SQLserverPath
                SQLSysAdminAccounts = @('Administrators')
+               SQLSvcStartupType = 'Automatic'
+               AgtSvcStartupType = 'Automatic'
                DependsOn           = '[WindowsFeature]NetFramework45'
           }
+
+          SqlServerNetwork 'SqlStaticTcp' {
+               InstanceName = 'ArianERP'
+               ProtocolName = 'TCP'
+               IsEnabled = $true
+               TcpPort = '1433'
+               RestartService = $true 
+               DependsOn = '[SqlSetup]InstallArianERPInstance'
+             }
+
+             Firewall '1433'
+             {
+                 Name                  = 'Arian-sqlserver-tcp'
+                 DisplayName           = 'Arian-sqlserver-tcp'
+                 Ensure                = 'Present'
+                 Enabled               = 'True'
+                 Profile               = ('Domain', 'Private','Public')
+                 Direction             = 'Inbound'
+                 LocalPort             = '1433'
+                 Protocol              = 'TCP'
+                 DependsOn = '[SqlServerNetwork]SqlStaticTcp'
+
+             }
+
+             Firewall '1434'
+             {
+                 Name                  = 'Arian-sqlBrowser-UDP'
+                 DisplayName           = 'Arian-sqlBrowserr-UDP'
+                 Ensure                = 'Present'
+                 Enabled               = 'True'
+                 Profile               = ('Domain', 'Private','Public')
+                 Direction             = 'Inbound'
+                 LocalPort             = '1434'
+                 Protocol              = 'UDP'
+                 DependsOn = '[SqlServerNetwork]SqlStaticTcp'
+
+             }
+         
      }
 }
 #create MOF file in Desire path
