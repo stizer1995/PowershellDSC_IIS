@@ -24,12 +24,9 @@ Configuration Webserver
         $WebsiteName = 'ArianWeb'
         }
 
-
-  Import-DscResource -ModuleName xwebadministration
-  Import-DscResource -ModuleName PSDesiredStateConfiguration
-  import-dscresource -Name xwebsite
-
-
+  # Import the module that defines custom resources
+  Import-DscResource -ModuleName xwebadministration , PSDesiredStateConfiguration , cChoco
+  
     node localhost {
         #check if server needs to restart
         LocalConfigurationManager 
@@ -79,6 +76,14 @@ Configuration Webserver
             Name = $WebsiteName
         }
 
+        # Create WebAppPool
+        xWebAppPool WebAppPool
+        {
+            Ensure = "Present"
+            State = "Started"
+            Name = $WebsiteName
+        }
+
         # Create Webiste
         xWebsite Arianweb
          {
@@ -93,6 +98,7 @@ Configuration Webserver
                                  }
                                 )
             DependsOn       = '[File]ArianWeb'
+
          }  
          
         #Create WebApplication
@@ -104,7 +110,21 @@ Configuration Webserver
             PhysicalPath = $arianwebpath
             Ensure = 'Present'
             DependsOn = '[xWebSite]Arianweb'
-         }     
+
+         } 
+
+        cChocoInstaller installChoco
+        {
+            InstallDir = "c:\ProgramData\chocolatey"
+            DependsOn = "[WindowsFeature]$Feature"
+        }
+        
+        cChocoPackageInstaller dotnetcore-windowshosting
+        {
+            Name = "dotnetcore-windowshosting"
+            DependsOn = "[cChocoInstaller]installChoco"
+        }   
+
     }
 }
 
@@ -112,6 +132,3 @@ Configuration Webserver
 Webserver -OutputPath "C:\DscConfiguration"
 #Running Configuration
 Start-DscConfiguration -wait -verbose -Path "C:\DscConfiguration"
-
-
-
