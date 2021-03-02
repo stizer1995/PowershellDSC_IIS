@@ -57,7 +57,7 @@ Configuration SQLInstall
              Firewall '1434'
              {
                  Name                  = 'Arian-sqlBrowser-UDP'
-                 DisplayName           = 'Arian-sqlBrowserr-UDP'
+                 DisplayName           = 'Arian-sqlBrowser-UDP'
                  Ensure                = 'Present'
                  Enabled               = 'True'
                  Profile               = ('Domain', 'Private','Public')
@@ -67,7 +67,7 @@ Configuration SQLInstall
                  DependsOn = '[SqlServerNetwork]SqlStaticTcp'
 
              }
-         
+
      }
 }
 #create MOF file in Desire path
