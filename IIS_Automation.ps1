@@ -67,6 +67,14 @@ Configuration Webserver
             PhysicalPath    = 'C:\inetpub\wwwroot'
             DependsOn       = "[WindowsFeature]$Feature"
         }
+        
+        # Create WebAppPool
+        xWebAppPool WebAppPool
+        {
+            Ensure = "Present"
+            State = "Started"
+            Name = $WebsiteName
+        }
 
         # Create WebAppPool
         xWebAppPool WebAppPool
@@ -90,7 +98,8 @@ Configuration Webserver
                                  }
                                 )
             DependsOn       = '[File]ArianWeb'
-         }   
+
+         }  
          
         #Create WebApplication
         xWebApplication demoWebApplication
@@ -101,6 +110,7 @@ Configuration Webserver
             PhysicalPath = $arianwebpath
             Ensure = 'Present'
             DependsOn = '[xWebSite]Arianweb'
+
          } 
 
         cChocoInstaller installChoco
@@ -114,6 +124,7 @@ Configuration Webserver
             Name = "dotnetcore-windowshosting"
             DependsOn = "[cChocoInstaller]installChoco"
         }   
+
     }
 }
 
