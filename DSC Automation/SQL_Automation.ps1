@@ -5,7 +5,12 @@ Configuration SQLInstall
       param (
         [Parameter(Mandatory=$true , HelpMessage="Enter SQL Installation Path")]
         [ValidateNotNullOrEmpty()]     
-        [string]$SQLserverPath
+        [string]$SQLserverPath ,
+
+        [Parameter(Mandatory=$true , HelpMessage="Enter SSMS Installation Path with exe path without quotation ex:( c:\ssms\SSMS-Setup-ENU.exe)")]
+        [ValidateNotNullOrEmpty()]     
+        [string]$SSMSPath
+    
     
     )
 
@@ -67,6 +72,16 @@ Configuration SQLInstall
                  DependsOn = '[SqlServerNetwork]SqlStaticTcp'
 
              }
+             Package SSMS
+             {
+                  Ensure    = 'Present'   
+                  Name      = 'Microsoft SQL Server Management Studio - 18.1'
+                  path      = $SSMSPath
+                  Arguments  = "/install /passive /norestart"
+                  productId = '1643af48-a2d8-4806-847c-8d565a9af98a'
+                  DependsOn = '[SqlSetup]InstallArianERPInstance'  
+             }
+   
 
      }
 }
