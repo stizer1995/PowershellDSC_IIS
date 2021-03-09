@@ -17,7 +17,7 @@ Configuration SQLInstall
 
         [Parameter(Mandatory=$true , HelpMessage="Enter setupx.x.x.bak path")]
         [ValidateNotNullOrEmpty()]     
-        [string]$Backup_Path
+        [string]$Backup_Path ,
 
         [Parameter(Mandatory=$true , HelpMessage="Enter DatabaseName")]
         [ValidateNotNullOrEmpty()]     
@@ -84,18 +84,9 @@ Configuration SQLInstall
                  DependsOn = '[SqlServerNetwork]SqlStaticTcp'
 
              }
-             Package SSMS
-             {
-                  Ensure    = 'Present'   
-                  Name      = 'Microsoft SQL Server Management Studio - 18.1'
-                  path      = $SSMSPath
-                  Arguments  = "/install /passive /norestart"
-                  productId = '1643af48-a2d8-4806-847c-8d565a9af98a'
-                  DependsOn = '[SqlSetup]InstallArianERPInstance'  
-             }
 
              SqlScriptQuery 'Restore_raw_Arian.bak'
-        {
+            {
             ServerName           = $env:COMPUTERNAME
             InstanceName         = 'ArianERP'
             GetQuery             = @'
@@ -141,7 +132,19 @@ END
             QueryTimeout         = 200
 
             PsDscRunAsCredential = $WindowsCredential
+            DependsOn = '[SqlSetup]InstallArianERPInstance' 
         }
+
+        Package SSMS
+        {
+             Ensure    = 'Present'   
+             Name      = 'Microsoft SQL Server Management Studio - 18.1'
+             path      = $SSMSPath
+             Arguments  = "/install /passive /norestart"
+             productId = '1643af48-a2d8-4806-847c-8d565a9af98a'
+             DependsOn = '[SqlSetup]InstallArianERPInstance'  
+        }
+
    
 
      }
