@@ -31,6 +31,14 @@ Configuration SQLInstall
 
      node localhost
      {
+          # Create Directory
+          File 'SQLDataPath'
+          {
+               Type = 'Directory'
+               DestinationPath = $SQL_Data_Path
+               Ensure = "Present"
+          }
+
           WindowsFeature 'NetFramework45'
           {
                Name   = 'NET-Framework-45-Core'
@@ -85,7 +93,7 @@ Configuration SQLInstall
 
              }
 
-             SqlScriptQuery 'Restore_raw_Arian.bak'
+            SqlScriptQuery 'Restore_raw_Arian.bak'
             {
             ServerName           = $env:COMPUTERNAME
             InstanceName         = 'ArianERP'
@@ -133,6 +141,30 @@ END
 
             PsDscRunAsCredential = $WindowsCredential
             DependsOn = '[SqlSetup]InstallArianERPInstance' 
+        }
+
+        SqlDatabaseUser 'RemoveUser_Arianerp'
+        {
+            Ensure               = 'Absent'
+            ServerName           = $env:COMPUTERNAME
+            InstanceName         = 'ArianERP'
+            DatabaseName         = $DatabaseName
+            Name                 = 'arianerp'
+
+            PsDscRunAsCredential = $WindowsCredential
+            DependsOn = '[SqlScriptQuery]Restore_raw_Arian.bak'
+        }
+
+        SqlDatabaseUser 'RemoveUser_AS'
+        {
+            Ensure               = 'Absent'
+            ServerName           = $env:COMPUTERNAME
+            InstanceName         = 'ArianERP'
+            DatabaseName         = $DatabaseName
+            Name                 = 'as'
+
+            PsDscRunAsCredential = $WindowsCredential
+            DependsOn = '[SqlScriptQuery]Restore_raw_Arian.bak'
         }
 
         Package SSMS
