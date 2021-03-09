@@ -1,4 +1,13 @@
 #Find-Module -Name SqlServerDsc | Install-Module
+$cd = @{
+    AllNodes = @(
+        @{
+            NodeName = 'localhost'
+            PSDscAllowPlainTextPassword = $true
+        }
+    )
+}
+
 
 Configuration SQLInstall
 {
@@ -21,8 +30,15 @@ Configuration SQLInstall
 
         [Parameter(Mandatory=$true , HelpMessage="Enter DatabaseName")]
         [ValidateNotNullOrEmpty()]     
-        [string]$DatabaseName
-    
+        [string]$DatabaseName ,
+
+        [ValidateNotNullOrEmpty()]
+        [System.Management.Automation.PSCredential]$SACredential =$(echo 'SA Password') ,
+
+        [ValidateNotNullOrEmpty()]
+        [System.Management.Automation.PSCredential]$ArianCredential =$(echo 'ArianERP Password')
+        
+        
     
     )
 
@@ -51,8 +67,10 @@ Configuration SQLInstall
                Features            = 'SQLENGINE'
                SourcePath          = $SQLserverPath
                SQLSysAdminAccounts = @('Administrators')
-               SQLSvcStartupType = 'Automatic'
-               AgtSvcStartupType = 'Automatic'
+               SQLSvcStartupType   = 'Automatic'
+               AgtSvcStartupType   = 'Automatic'
+               SecurityMode        = 'SQL'
+               SAPwd               = $SACredential  
                DependsOn           = '[WindowsFeature]NetFramework45'
           }
 
@@ -136,9 +154,7 @@ END
 '@
 
             Variable            = "DatabaseName=$DatabaseName" ,"SQL_Data_Path=$SQL_Data_Path" ,"Backup_Path=$Backup_Path"
-
             QueryTimeout         = 200
-
             PsDscRunAsCredential = $WindowsCredential
             DependsOn = '[SqlSetup]InstallArianERPInstance' 
         }
@@ -167,6 +183,107 @@ END
             DependsOn = '[SqlScriptQuery]Restore_raw_Arian.bak'
         }
 
+        SqlLogin 'Add_ArianERP'
+        {
+            Ensure                         = 'Present'
+            Name                           = 'ArianERP'
+            LoginType                      = 'SqlLogin'
+            ServerName                     = $env:COMPUTERNAME
+            InstanceName                   = 'ArianERP'
+            LoginCredential                = $ArianCredential
+            LoginMustChangePassword        = $false
+            LoginPasswordExpirationEnabled = $false
+            LoginPasswordPolicyEnforced    = $false
+            PsDscRunAsCredential           = $WindowsCredential
+            DependsOn = '[SqlDatabaseUser]RemoveUser_AS'
+        }
+
+        SqlScriptQuery 'add server role and user mapping for arianerp in specified database'
+        {
+            ServerName           = $env:COMPUTERNAME
+            InstanceName         = 'ArianERP'
+            GetQuery             = 'Set query'
+
+            TestQuery            = 'Test query'
+            SetQuery             = @'
+        ALTER SERVER ROLE [bulkadmin] ADD MEMBER [ArianERP]
+        GO
+        ALTER SERVER ROLE [dbcreator] ADD MEMBER [ArianERP]
+        GO
+        ALTER SERVER ROLE [sysadmin] ADD MEMBER [ArianERP]
+        GO
+        USE [$(DatabaseName)]
+        GO
+        CREATE USER [ArianERP] FOR LOGIN [ArianERP]
+        GO
+       
+'@
+
+            Variable            = "DatabaseName=$DatabaseName" 
+            QueryTimeout         = 200
+            PsDscRunAsCredential = $WindowsCredential
+            DependsOn = '[SqlLogin]Add_ArianERP'
+         
+        }
+
+        SqlScriptQuery 'add server role and user mapping for as'
+        {
+            ServerName           = $env:COMPUTERNAME
+            InstanceName         = 'ArianERP'
+            GetQuery             = 'Set query'
+
+            TestQuery            = 'Test query'
+            SetQuery             = @'
+        
+IF NOT EXISTS ( SELECT * FROM master..syslogins WHERE NAME='as')
+CREATE LOGIN [as] WITH PASSWORD= 0x0100DF9DC0B91D68BE01427DA76A37D868364E211480E7212A01 HASHED ,DEFAULT_DATABASE=[master], CHECK_EXPIRATION=OFF, CHECK_POLICY=OFF
+
+exec sp_addsrvrolemember 'as' ,'bulkadmin' 
+exec sp_addsrvrolemember 'as' ,'dbcreator' 
+
+DECLARE @DBName NVARCHAR(500)
+DECLARE Csr CURSOR LOCAL FAST_FORWARD READ_ONLY FOR  
+SELECT [Name] FROM sys.databases s
+WHERE s.database_id  > 4 AND s.state_desc = 'ONLINE'
+OPEN Csr 
+FETCH NEXT FROM Csr INTO @DBName
+WHILE @@FETCH_STATUS = 0 
+BEGIN
+
+EXEC ('USE '+@DBName+' 
+        IF NOT EXISTS (SELECT * FROM sysusers
+                       WHERE issqlrole = 1 AND NAME=''arian_spexecutor'')
+        BEGIN 				
+            CREATE ROLE arian_spexecutor 
+            GRANT EXECUTE TO arian_spexecutor 
+        END
+         
+       IF NOT EXISTS (SELECT * FROM sysusers
+                      where  NAME=''as'')
+            CREATE USER [as] FOR LOGIN [as]
+ 
+        EXEC sp_addrolemember N''db_backupoperator'', N''as''
+        EXEC sp_addrolemember N''db_datareader'', N''as''
+        EXEC sp_addrolemember N''db_datawriter'', N''as''
+        EXEC sp_addrolemember N''arian_spexecutor'', N''as''
+        EXEC sp_addrolemember N''db_ddladmin'', N''as''
+    ')
+      
+FETCH NEXT FROM Csr INTO @DBName
+END	
+CLOSE Csr 
+DEALLOCATE Csr 
+
+
+EXEC ('USE MASTER 
+  GRANT VIEW SERVER STATE TO [as]')
+       
+'@
+
+            QueryTimeout         = 200
+            PsDscRunAsCredential = $WindowsCredential 
+        }
+
         Package SSMS
         {
              Ensure    = 'Present'   
@@ -176,12 +293,9 @@ END
              productId = '1643af48-a2d8-4806-847c-8d565a9af98a'
              DependsOn = '[SqlSetup]InstallArianERPInstance'  
         }
-
-   
-
      }
 }
 #create MOF file in Desire path
-SQLInstall -OutputPath "C:\DscConfiguration"
+SQLInstall -ConfigurationData $cd -OutputPath "C:\DscConfiguration"
 #Running Configuration
 Start-DscConfiguration -wait -verbose -Path "C:\DscConfiguration"
