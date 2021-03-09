@@ -66,7 +66,7 @@ Configuration SQLInstall
                InstanceName        = 'ArianERP'
                Features            = 'SQLENGINE'
                SourcePath          = $SQLserverPath
-               SQLSysAdminAccounts = @('Administrators')
+               SQLSysAdminAccounts = @('Administrator')
                SQLSvcStartupType   = 'Automatic'
                AgtSvcStartupType   = 'Automatic'
                SecurityMode        = 'SQL'
