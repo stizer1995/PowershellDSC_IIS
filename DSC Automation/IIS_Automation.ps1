@@ -27,7 +27,7 @@ Configuration Webserver
   # Import the module that defines custom resources
   Import-DscResource -ModuleName xwebadministration , PSDesiredStateConfiguration , cChoco
   
-    node localhost {
+    node $env:COMPUTERNAME {
         #check if server needs to restart
         LocalConfigurationManager 
         {

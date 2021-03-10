@@ -3,7 +3,8 @@
 Configuration choco{
 
     Import-DscResource -ModuleName cChoco
-    node localhost{
+
+    node $env:COMPUTERNAME{
 
         cChocoInstaller installChoco
         {

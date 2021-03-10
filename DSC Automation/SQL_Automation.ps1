@@ -2,7 +2,7 @@
 $cd = @{
     AllNodes = @(
         @{
-            NodeName = 'localhost'
+            NodeName = $env:COMPUTERNAME
             PSDscAllowPlainTextPassword = $true
         }
     )
@@ -45,7 +45,7 @@ Configuration SQLInstall
 
      Import-DscResource -ModuleName SqlServerDsc , PSDesiredStateConfiguration , NetworkingDsc
 
-     node localhost
+     node $env:COMPUTERNAME
      {
           # Create Directory
           File 'SQLDataPath'

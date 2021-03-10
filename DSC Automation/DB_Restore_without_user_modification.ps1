@@ -2,7 +2,7 @@
 $cd = @{
     AllNodes = @(
         @{
-            NodeName = 'localhost'
+            NodeName = $env:COMPUTERNAME
             PSDscAllowPlainTextPassword = $true
         }
     )
@@ -31,7 +31,7 @@ Configuration DBRestore
 
      Import-DscResource -ModuleName SqlServerDsc , PSDesiredStateConfiguration 
 
-     node localhost
+     node $env:COMPUTERNAME
      {
          
           # Create Directory

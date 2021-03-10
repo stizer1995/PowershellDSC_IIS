@@ -10,7 +10,7 @@ Configuration SSMSInstall
     )
 
 
-     node localhost
+     node $env:COMPUTERNAME
      {
           Package SSMS
           {
