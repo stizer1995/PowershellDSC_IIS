@@ -1,4 +1,4 @@
-#Find-Module -Name SqlServerDsc | Install-Module
+#Must be installed with local administrator account
 $cd = @{
     AllNodes = @(
         @{
