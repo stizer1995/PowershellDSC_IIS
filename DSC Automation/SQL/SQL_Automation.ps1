@@ -283,6 +283,57 @@ EXEC ('USE MASTER
             DependsOn = '[SqlLogin]Add_ArianERP'
         }
 
+        SqlScriptQuery 'Configure Database properties'
+        {
+            ServerName           = $env:COMPUTERNAME
+            InstanceName         = 'ArianERP'
+            GetQuery             = 'Get query'
+            TestQuery            = 'Test query'
+            SetQuery             = @'
+
+           USE [master]
+GO
+ALTER DATABASE [$(DatabaseName)] SET COMPATIBILITY_LEVEL = 140
+GO
+ALTER DATABASE [$(DatabaseName)] MODIFY FILE ( NAME = N'Acc_', FILEGROWTH = 8192KB )
+GO
+ALTER DATABASE [$(DatabaseName)] MODIFY FILE ( NAME = N'Ast', FILEGROWTH = 8192KB )
+GO
+ALTER DATABASE [$(DatabaseName)] MODIFY FILE ( NAME = N'Auto', FILEGROWTH = 8192KB )
+GO
+ALTER DATABASE [$(DatabaseName)] MODIFY FILE ( NAME = N'Buy_', FILEGROWTH = 8192KB )
+GO
+ALTER DATABASE [$(DatabaseName)] MODIFY FILE ( NAME = N'Common', FILEGROWTH = 8192KB )
+GO
+ALTER DATABASE [$(DatabaseName)] MODIFY FILE ( NAME = N'Inv', FILEGROWTH = 8192KB )
+GO
+ALTER DATABASE [$(DatabaseName)] MODIFY FILE ( NAME = N'KH', FILEGROWTH = 8192KB )
+GO
+ALTER DATABASE [$(DatabaseName)] MODIFY FILE ( NAME = N'Beta', FILEGROWTH = 65536KB )
+GO
+ALTER DATABASE [$(DatabaseName)] MODIFY FILE ( NAME = N'buy', FILEGROWTH = 8192KB )
+GO
+ALTER DATABASE [$(DatabaseName)] MODIFY FILE ( NAME = N'Prod', FILEGROWTH = 8192KB )
+GO
+ALTER DATABASE [$(DatabaseName)] MODIFY FILE ( NAME = N'Sale', FILEGROWTH = 8192KB )
+GO
+ALTER DATABASE [$(DatabaseName)] MODIFY FILE ( NAME = N'Stf', FILEGROWTH = 8192KB )
+GO
+ALTER DATABASE [$(DatabaseName)] MODIFY FILE ( NAME = N'stock', FILEGROWTH = 8192KB )
+GO
+ALTER DATABASE [$(DatabaseName)] MODIFY FILE ( NAME = N'Sys', FILEGROWTH = 8192KB )
+GO
+ALTER DATABASE [$(DatabaseName)] MODIFY FILE ( NAME = N'Trh', FILEGROWTH = 8192KB )
+GO
+ALTER DATABASE [$(DatabaseName)] MODIFY FILE ( NAME = N'Beta_log', FILEGROWTH = 131072KB )
+GO
+  
+'@
+            Variable            = "DatabaseName=$DatabaseName"
+            QueryTimeout         = 200
+            PsDscRunAsCredential = $WindowsCredential
+        }
+
         SqlScriptQuery 'Disable administrator login '
         {
             ServerName           = $env:COMPUTERNAME
