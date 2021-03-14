@@ -480,7 +480,7 @@ GO
         }  
       }
 
-        Package SSMS
+        Package 'SSMS18.1'
         {
              Ensure    = 'Present'   
              Name      = 'Microsoft SQL Server Management Studio - 18.1'
@@ -489,6 +489,16 @@ GO
              productId = '1643af48-a2d8-4806-847c-8d565a9af98a'
              DependsOn = '[SqlSetup]InstallArianERPInstance'  
         }
+
+        # Package 'SSMS18.5'
+        # {
+        #      Ensure    = 'Present'   
+        #      Name      = 'Microsoft SQL Server Management Studio - 18.5'
+        #      path      = $SSMSPath
+        #      Arguments  = "/install /passive /norestart"
+        #      productId = '673f06b0-3fd3-4b11-a775-3359fa5df604'
+        #      DependsOn = '[SqlSetup]InstallArianERPInstance'  
+        # }
      }
 }
 #create MOF file in Desire path
